@@ -1,4 +1,7 @@
+#include <filesystem>
 #include <memory>
+#include <stdexcept>
+#include <vector>
 
 #include "application/acme_account_service.h"
 #include "application/acme_workflow_service.h"
@@ -18,45 +21,88 @@
 #include "infrastructure/transport/acme_http_server.h"
 #include "infrastructure/util/file_store.h"
 
-namespace {
+namespace
+{
 
-void seed_postgres_eab_mappings(
-    const std::shared_ptr<acme::infrastructure::PostgresClient>& postgres_client,
-    const std::string& csv_path) {
-    using acme::infrastructure::util::read_lines;
-    using acme::infrastructure::util::split;
+    constexpr const char *kDefaultConfigPath = "config/server.conf";
 
-    bool first = true;
-    for (const auto& line : read_lines(csv_path)) {
-        if (line.empty()) {
-            continue;
-        }
-        if (first) {
-            first = false;
-            if (line.starts_with("id,")) {
-                continue;
+    std::filesystem::path resolve_project_root()
+    {
+        const std::vector<std::filesystem::path> candidates = {
+            kDefaultConfigPath,
+            std::filesystem::path("..") / kDefaultConfigPath,
+        };
+
+        for (const auto &candidate : candidates)
+        {
+            if (std::filesystem::exists(candidate))
+            {
+                const auto absolute_config = std::filesystem::absolute(candidate);
+                return absolute_config.parent_path().parent_path();
             }
         }
-        const auto parts = split(line, ',');
-        if (parts.size() != 5) {
-            continue;
-        }
-        postgres_client->exec(
-            "insert into eab_mappings (id, client_id, hmac_key, ca, credentials_id) values (" +
-            postgres_client->escape_literal(parts[0]) + "," +
-            postgres_client->escape_literal(parts[1]) + "," +
-            postgres_client->escape_literal(parts[2]) + "," +
-            postgres_client->escape_literal(parts[3]) + "," +
-            postgres_client->escape_literal(parts[4]) + ") " +
-            "on conflict (client_id) do update set hmac_key = excluded.hmac_key, ca = excluded.ca, credentials_id = excluded.credentials_id");
+
+        throw std::runtime_error(
+            "unable to find config/server.conf — run from the ACME-Server project root "
+            "or from build/, or pass a config path as the first argument");
     }
-}
 
-}  // namespace
+    void seed_postgres_eab_mappings(
+        const std::shared_ptr<acme::infrastructure::PostgresClient> &postgres_client,
+        const std::string &csv_path)
+    {
+        using acme::infrastructure::util::read_lines;
+        using acme::infrastructure::util::split;
 
-int main() {
+        bool first = true;
+        for (const auto &line : read_lines(csv_path))
+        {
+            if (line.empty())
+            {
+                continue;
+            }
+            if (first)
+            {
+                first = false;
+                if (line.starts_with("id,"))
+                {
+                    continue;
+                }
+            }
+            const auto parts = split(line, ',');
+            if (parts.size() != 5)
+            {
+                continue;
+            }
+            postgres_client->exec(
+                "insert into eab_mappings (id, client_id, hmac_key, ca, credentials_id) values (" +
+                postgres_client->escape_literal(parts[0]) + "," +
+                postgres_client->escape_literal(parts[1]) + "," +
+                postgres_client->escape_literal(parts[2]) + "," +
+                postgres_client->escape_literal(parts[3]) + "," +
+                postgres_client->escape_literal(parts[4]) + ") " +
+                "on conflict (client_id) do update set hmac_key = excluded.hmac_key, ca = excluded.ca, credentials_id = excluded.credentials_id");
+        }
+    }
+
+} // namespace
+
+int main(int argc, char **argv)
+{
     using namespace acme;
-    const auto config = infrastructure::config::load_from_file("config/server.conf");
+
+    const std::string config_path = argc > 1 ? argv[1] : kDefaultConfigPath;
+    if (!std::filesystem::exists(config_path))
+    {
+        std::filesystem::current_path(resolve_project_root());
+    }
+    else if (config_path == kDefaultConfigPath)
+    {
+        const auto absolute_config = std::filesystem::absolute(config_path);
+        std::filesystem::current_path(absolute_config.parent_path().parent_path());
+    }
+
+    const auto config = infrastructure::config::load_from_file(config_path);
     std::shared_ptr<infrastructure::PostgresClient> postgres_client;
     std::unique_ptr<application::EabMappingRepository> eab_repository;
     std::unique_ptr<application::AcmeAccountRepository> account_repository;
@@ -65,17 +111,20 @@ int main() {
     std::unique_ptr<application::AcmeCertificateRepository> certificate_repository;
     std::unique_ptr<application::NonceRepository> nonce_repository;
 
-    if (config.storage_backend == "postgres") {
+    if (config.storage_backend == "postgres")
+    {
         postgres_client = std::make_shared<infrastructure::PostgresClient>(config.postgres_connection_string);
-        postgres_client->ensure_schema("sql/postgres_schema.sql");
-        seed_postgres_eab_mappings(postgres_client, config.eab_mappings_file);
+        // postgres_client->ensure_schema("sql/postgres_schema.sql");
+        // seed_postgres_eab_mappings(postgres_client, config.eab_mappings_file);
         eab_repository = std::make_unique<infrastructure::PostgresEabMappingRepository>(postgres_client);
         account_repository = std::make_unique<infrastructure::PostgresAcmeAccountRepository>(postgres_client);
         order_repository = std::make_unique<infrastructure::PostgresAcmeOrderRepository>(postgres_client);
         authorization_repository = std::make_unique<infrastructure::PostgresAcmeAuthorizationRepository>(postgres_client);
         certificate_repository = std::make_unique<infrastructure::PostgresAcmeCertificateRepository>(postgres_client);
         nonce_repository = std::make_unique<infrastructure::PostgresNonceRepository>(postgres_client);
-    } else {
+    }
+    else
+    {
         eab_repository = std::make_unique<infrastructure::FileEabMappingRepository>(config.eab_mappings_file);
         account_repository = std::make_unique<infrastructure::FileAcmeAccountRepository>(config.accounts_file);
         order_repository = std::make_unique<infrastructure::FileAcmeOrderRepository>(config.data_dir);
@@ -92,6 +141,9 @@ int main() {
         .working_dir = config.data_dir,
         .valid_days = config.openssl_valid_days,
     });
+
+
+    
 
     application::EabService eab_service(*eab_repository);
     application::AcmeAccountService account_service(*account_repository, eab_service);

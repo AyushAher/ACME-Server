@@ -12,34 +12,41 @@
 #include "infrastructure/in_memory_nonce_repository.h"
 #include "infrastructure/util/hmac_sha256.h"
 
-namespace {
+namespace
+{
 
-class StubCertificateAuthority final : public acme::application::CertificateAuthority {
-  public:
-    std::string authority_name() const override {
-        return "EJBCA-Community";
+    class StubCertificateAuthority final : public acme::application::CertificateAuthority
+    {
+    public:
+        std::string authority_name() const override
+        {
+            return "EJBCA-Community";
+        }
+
+        acme::domain::CertificateIssueResult issue_certificate(
+            const acme::domain::CertificateOrderRequest &request,
+            const acme::domain::EabMapping &mapping) const override
+        {
+            return {
+                .success = true,
+                .certificate_pem_or_der = "issued-for:" + request.username + ":" + mapping.client_id,
+                .raw_response = "ok",
+            };
+        }
+    };
+
+    void expect(bool condition, const std::string &message)
+    {
+        if (!condition)
+        {
+            throw std::runtime_error(message);
+        }
     }
 
-    acme::domain::CertificateIssueResult issue_certificate(
-        const acme::domain::CertificateOrderRequest& request,
-        const acme::domain::EabMapping& mapping) const override {
-        return {
-            .success = true,
-            .certificate_pem_or_der = "issued-for:" + request.username + ":" + mapping.client_id,
-            .raw_response = "ok",
-        };
-    }
-};
+} // namespace
 
-void expect(bool condition, const std::string& message) {
-    if (!condition) {
-        throw std::runtime_error(message);
-    }
-}
-
-}  // namespace
-
-int main() {
+int main()
+{
     using namespace acme;
 
     infrastructure::InMemoryEabMappingRepository eab_repository({
@@ -73,7 +80,7 @@ int main() {
         .contacts = {"mailto:test@example.com"},
         .terms_of_service_agreed = true,
         .account_public_jwk = jwk,
-        .external_account_binding = domain::ExternalAccountBindingPayload {
+        .external_account_binding = domain::ExternalAccountBindingPayload{
             .key_identifier = "client-123",
             .protected_jwk = jwk,
             .protected_header_b64 = protected_b64,
