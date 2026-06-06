@@ -3,23 +3,23 @@
 #include <stdexcept>
 #include <vector>
 
-#include "application/acme_account_service.h"
-#include "application/acme_workflow_service.h"
-#include "application/eab_service.h"
-#include "application/nonce_service.h"
-#include "infrastructure/config/app_config.h"
-#include "infrastructure/file_acme_authorization_repository.h"
-#include "infrastructure/file_acme_account_repository.h"
-#include "infrastructure/file_acme_certificate_repository.h"
-#include "infrastructure/file_eab_mapping_repository.h"
-#include "infrastructure/file_acme_order_repository.h"
-#include "infrastructure/file_nonce_repository.h"
-#include "infrastructure/http01_challenge_validator.h"
-#include "infrastructure/openssl_certificate_authority.h"
-#include "infrastructure/postgres_client.h"
-#include "infrastructure/postgres_repositories.h"
-#include "infrastructure/transport/acme_http_server.h"
-#include "infrastructure/util/file_store.h"
+#include "acme/application/acme_account_service.h"
+#include "acme/application/acme_workflow_service.h"
+#include "acme/application/eab_service.h"
+#include "acme/application/nonce_service.h"
+#include "acme/infrastructure/config/app_config.h"
+#include "acme/infrastructure/file_acme_authorization_repository.h"
+#include "acme/infrastructure/file_acme_account_repository.h"
+#include "acme/infrastructure/file_acme_certificate_repository.h"
+#include "acme/infrastructure/file_eab_mapping_repository.h"
+#include "acme/infrastructure/file_acme_order_repository.h"
+#include "acme/infrastructure/file_nonce_repository.h"
+#include "acme/infrastructure/http01_challenge_validator.h"
+#include "acme/infrastructure/openssl_certificate_authority.h"
+#include "acme/infrastructure/postgres_client.h"
+#include "acme/infrastructure/postgres_repositories.h"
+#include "acme/infrastructure/transport/acme_http_server.h"
+#include "acme/infrastructure/util/file_store.h"
 
 namespace
 {
@@ -142,9 +142,6 @@ int main(int argc, char **argv)
         .valid_days = config.openssl_valid_days,
     });
 
-
-    
-
     application::EabService eab_service(*eab_repository);
     application::AcmeAccountService account_service(*account_repository, eab_service);
     application::NonceService nonce_service(*nonce_repository);
@@ -168,6 +165,14 @@ int main(int argc, char **argv)
         account_service,
         workflow_service);
 
-    server.run();
+    api_server::ApiServer api_server(
+        {
+            .host = config.host,
+            .port = config.port,
+            .base_url = config.base_url,
+        },
+        server);
+    api_server.run();
+    // server.run();
     return 0;
 }

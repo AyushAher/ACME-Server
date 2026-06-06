@@ -2,15 +2,15 @@
 #include <iostream>
 #include <stdexcept>
 
-#include "application/acme_account_service.h"
-#include "application/certificate_order_service.h"
-#include "application/eab_service.h"
-#include "application/nonce_service.h"
-#include "infrastructure/util/base64url.h"
-#include "infrastructure/in_memory_acme_account_repository.h"
-#include "infrastructure/in_memory_eab_mapping_repository.h"
-#include "infrastructure/in_memory_nonce_repository.h"
-#include "infrastructure/util/hmac_sha256.h"
+#include "acme/application/acme_account_service.h"
+#include "acme/application/certificate_order_service.h"
+#include "acme/application/eab_service.h"
+#include "acme/application/nonce_service.h"
+#include "acme/infrastructure/util/base64url.h"
+#include "acme/infrastructure/in_memory_acme_account_repository.h"
+#include "acme/infrastructure/in_memory_eab_mapping_repository.h"
+#include "acme/infrastructure/in_memory_nonce_repository.h"
+#include "acme/infrastructure/util/hmac_sha256.h"
 
 namespace
 {

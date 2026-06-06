@@ -5,9 +5,17 @@ project(acme_server_demo VERSION 1.0 LANGUAGES CXX)
 # ==================================================
 # C++ Configuration
 # ==================================================
-set(CMAKE_CXX_STANDARD 20)
+
+# --- 1. Project Configuration ---
+if (WIN32)
+    set(CMAKE_CXX_STANDARD 20)
+else()
+    set(CMAKE_CXX_STANDARD 20)
+endif()
+
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # ==================================================
 # Dependencies
@@ -52,44 +60,45 @@ find_package(PostgreSQL REQUIRED)
 add_library(acme_core
 
     # ---------- application ----------
-    src/application/acme_workflow_service.cpp
-    src/application/acme_account_service.cpp
-    src/application/certificate_order_service.cpp
-    src/application/eab_service.cpp
-    src/application/nonce_service.cpp
+    src/acme/application/acme_workflow_service.cpp
+    src/acme/application/acme_account_service.cpp
+    src/acme/application/certificate_order_service.cpp
+    src/acme/application/eab_service.cpp
+    src/acme/application/nonce_service.cpp
+    src/api-server/ApiServer.cpp
 
     # ---------- infrastructure ----------
-    src/infrastructure/config/app_config.cpp
-    src/infrastructure/ejbca_certificate_authority.cpp
-    src/infrastructure/file_acme_authorization_repository.cpp
-    src/infrastructure/file_acme_account_repository.cpp
-    src/infrastructure/file_acme_certificate_repository.cpp
-    src/infrastructure/file_eab_mapping_repository.cpp
-    src/infrastructure/file_acme_order_repository.cpp
-    src/infrastructure/file_nonce_repository.cpp
-    src/infrastructure/http01_challenge_validator.cpp
-    src/infrastructure/in_memory_acme_account_repository.cpp
-    src/infrastructure/in_memory_eab_mapping_repository.cpp
-    src/infrastructure/in_memory_nonce_repository.cpp
-    src/infrastructure/openssl_certificate_authority.cpp
+    src/acme/infrastructure/config/app_config.cpp
+    src/acme/infrastructure/ejbca_certificate_authority.cpp
+    src/acme/infrastructure/file_acme_authorization_repository.cpp
+    src/acme/infrastructure/file_acme_account_repository.cpp
+    src/acme/infrastructure/file_acme_certificate_repository.cpp
+    src/acme/infrastructure/file_eab_mapping_repository.cpp
+    src/acme/infrastructure/file_acme_order_repository.cpp
+    src/acme/infrastructure/file_nonce_repository.cpp
+    src/acme/infrastructure/http01_challenge_validator.cpp
+    src/acme/infrastructure/in_memory_acme_account_repository.cpp
+    src/acme/infrastructure/in_memory_eab_mapping_repository.cpp
+    src/acme/infrastructure/in_memory_nonce_repository.cpp
+    src/acme/infrastructure/openssl_certificate_authority.cpp
 
     # PostgreSQL
-    src/infrastructure/postgres_client.cpp
-    src/infrastructure/postgres_repositories.cpp
-    src/infrastructure/postgres_serialization.cpp
+    src/acme/infrastructure/postgres_client.cpp
+    src/acme/infrastructure/postgres_repositories.cpp
+    src/acme/infrastructure/postgres_serialization.cpp
 
-    src/infrastructure/shell_http_client.cpp
-    src/infrastructure/transport/acme_http_server.cpp
+    src/acme/infrastructure/shell_http_client.cpp
+    src/acme/infrastructure/transport/acme_http_server.cpp
 
     # ---------- utilities ----------
-    src/infrastructure/util/acme_protocol.cpp
-    src/infrastructure/util/base64url.cpp
-    src/infrastructure/util/command_runner.cpp
-    src/infrastructure/util/file_store.cpp
-    src/infrastructure/util/json.cpp
-    src/infrastructure/util/hmac_sha256.cpp
-    src/infrastructure/util/random.cpp
-    src/infrastructure/util/sha256.cpp
+    src/acme/infrastructure/util/acme_protocol.cpp
+    src/acme/infrastructure/util/base64url.cpp
+    src/acme/infrastructure/util/command_runner.cpp
+    src/acme/infrastructure/util/file_store.cpp
+    src/acme/infrastructure/util/json.cpp
+    src/acme/infrastructure/util/hmac_sha256.cpp
+    src/acme/infrastructure/util/random.cpp
+    src/acme/infrastructure/util/sha256.cpp
 )
 
 # ==================================================
