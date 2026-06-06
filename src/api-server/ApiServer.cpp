@@ -10,10 +10,9 @@
 #include <map>
 #include <sstream>
 #include <stdexcept>
-#include "common/server_options.h"
-#include "acme/infrastructure/util/acme_protocol.h"
-#include "acme/infrastructure/util/base64url.h"
+
 #include "acme/infrastructure/util/json.h"
+#include "common/server_options.h"
 
 namespace api_server
 {
@@ -109,28 +108,6 @@ namespace api_server
             return output.str();
         }
 
-        std::optional<std::string> path_param(const std::string &path, const std::string &prefix, const std::string &suffix = "")
-        {
-            if (!path.starts_with(prefix))
-            {
-                return std::nullopt;
-            }
-            auto value = path.substr(prefix.size());
-            if (!suffix.empty())
-            {
-                if (!value.ends_with(suffix))
-                {
-                    return std::nullopt;
-                }
-                value = value.substr(0, value.size() - suffix.size());
-            }
-            if (value.empty() || value.find('/') != std::string::npos)
-            {
-                return std::nullopt;
-            }
-            return value;
-        }
-
         std::string json_string_array(const std::vector<std::string> &values)
         {
             std::ostringstream output;
@@ -147,13 +124,50 @@ namespace api_server
             return output.str();
         }
 
-    }
+        std::string discovery_result_json(const discovery::CertificateDiscoveryResult &result)
+        {
+            return acme::infrastructure::util::json::object({
+                {"host", "\"" + acme::infrastructure::util::json::escape(result.host) + "\""},
+                {"port", std::to_string(result.port)},
+                {"tcpConnected", result.tcp_connected ? "true" : "false"},
+                {"tlsEstablished", result.tls_established ? "true" : "false"},
+                {"subject", "\"" + acme::infrastructure::util::json::escape(result.subject) + "\""},
+                {"issuer", "\"" + acme::infrastructure::util::json::escape(result.issuer) + "\""},
+                {"serialHex", "\"" + acme::infrastructure::util::json::escape(result.serial_hex) + "\""},
+                {"notBefore", "\"" + acme::infrastructure::util::json::escape(result.not_before) + "\""},
+                {"notAfter", "\"" + acme::infrastructure::util::json::escape(result.not_after) + "\""},
+                {"sha256Fingerprint", "\"" + acme::infrastructure::util::json::escape(result.sha256_fingerprint) + "\""},
+                {"dnsNames", json_string_array(result.dns_names)},
+                {"ipAddresses", json_string_array(result.ip_addresses)},
+                {"error", "\"" + acme::infrastructure::util::json::escape(result.error) + "\""},
+            });
+        }
 
-    api_server::ApiServer::ApiServer(
-        ServerOptions options,
-        acme::infrastructure::transport::AcmeHttpServer &http_server)
+        std::string discovery_results_json(const std::vector<discovery::CertificateDiscoveryResult> &results)
+        {
+            std::ostringstream output;
+            output << "{\"results\":[";
+            for (std::size_t index = 0; index < results.size(); ++index)
+            {
+                if (index > 0)
+                {
+                    output << ",";
+                }
+                output << discovery_result_json(results[index]);
+            }
+            output << "]}";
+            return output.str();
+        }
+
+    } // namespace
+
+    ApiServer::ApiServer(
+        common::ServerOptions options,
+        acme::infrastructure::transport::AcmeHttpServer &http_server,
+        discovery::CertificateDiscoveryService &discovery_service)
         : options_(std::move(options)),
-          http_server_(http_server) {}
+          http_server_(http_server),
+          discovery_service_(discovery_service) {}
 
     void ApiServer::run() const
     {
@@ -182,7 +196,7 @@ namespace api_server
             throw std::runtime_error("failed to listen on server socket");
         }
 
-        std::cout << "ACME HTTP server listening on " << options_.host << ":" << options_.port << "\n";
+        std::cout << "API server listening on " << options_.host << ":" << options_.port << "\n";
 
         while (true)
         {
@@ -219,10 +233,93 @@ namespace api_server
                 }
             }
 
-            const auto requestParsed = parse_request(request);
-            const auto response = http_server_.handle_request(request);
-            send(client_fd, response.data(), response.size(), 0);
+            const auto http_response = handle_request(request);
+            send(client_fd, http_response.data(), http_response.size(), 0);
             close(client_fd);
         }
     }
-}
+
+    std::string ApiServer::handle_request(const std::string &raw_request) const
+    {
+        using acme::infrastructure::util::json::escape;
+        using acme::infrastructure::util::json::find_int;
+        using acme::infrastructure::util::json::find_string;
+
+        try
+        {
+            const auto request = parse_request(raw_request);
+
+            if (request.method == "GET" && request.path == "/api/v1/healthz")
+            {
+                return response(
+                    200,
+                    "{\"status\":\"ok\",\"service\":\"acme-multiservice\"}",
+                    {{"Content-Type", "application/json"}});
+            }
+
+            if (request.path == "/api/v1/discovery/host")
+            {
+                if (request.method != "POST")
+                {
+                    return response(405, "{\"error\":\"method not allowed\"}", {{"Content-Type", "application/json"}});
+                }
+                const auto host = find_string(request.body, "host");
+                if (!host.has_value())
+                {
+                    throw std::runtime_error("host is required");
+                }
+                const int port = find_int(request.body, "port").value_or(443);
+                const int timeout_ms = find_int(request.body, "timeoutMs").value_or(3000);
+                const auto result = discovery_service_.discover_host(*host, port, timeout_ms);
+                return response(200, discovery_result_json(result), {{"Content-Type", "application/json"}});
+            }
+
+            if (request.path == "/api/v1/discovery/range")
+            {
+                if (request.method != "POST")
+                {
+                    return response(405, "{\"error\":\"method not allowed\"}", {{"Content-Type", "application/json"}});
+                }
+                const auto start_ip = find_string(request.body, "startIp");
+                const auto end_ip = find_string(request.body, "endIp");
+                if (!start_ip.has_value() || !end_ip.has_value())
+                {
+                    throw std::runtime_error("startIp and endIp are required");
+                }
+                const int port = find_int(request.body, "port").value_or(443);
+                const int timeout_ms = find_int(request.body, "timeoutMs").value_or(3000);
+                const int max_hosts = find_int(request.body, "maxHosts").value_or(256);
+                const auto results = discovery_service_.discover_range(*start_ip, *end_ip, port, timeout_ms, max_hosts);
+                return response(200, discovery_results_json(results), {{"Content-Type", "application/json"}});
+            }
+
+            if (request.path == "/api/v1/discovery/subnet")
+            {
+                if (request.method != "POST")
+                {
+                    return response(405, "{\"error\":\"method not allowed\"}", {{"Content-Type", "application/json"}});
+                }
+                const auto cidr = find_string(request.body, "cidr");
+                if (!cidr.has_value())
+                {
+                    throw std::runtime_error("cidr is required");
+                }
+                const int port = find_int(request.body, "port").value_or(443);
+                const int timeout_ms = find_int(request.body, "timeoutMs").value_or(3000);
+                const int max_hosts = find_int(request.body, "maxHosts").value_or(256);
+                const auto results = discovery_service_.discover_subnet(*cidr, port, timeout_ms, max_hosts);
+                return response(200, discovery_results_json(results), {{"Content-Type", "application/json"}});
+            }
+
+            return http_server_.handle_request(raw_request);
+        }
+        catch (const std::exception &ex)
+        {
+            return response(
+                400,
+                std::string("{\"error\":\"") + escape(ex.what()) + "\"}",
+                {{"Content-Type", "application/json"}});
+        }
+    }
+
+} // namespace api_server

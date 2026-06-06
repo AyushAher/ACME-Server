@@ -20,6 +20,8 @@
 #include "acme/infrastructure/postgres_repositories.h"
 #include "acme/infrastructure/transport/acme_http_server.h"
 #include "acme/infrastructure/util/file_store.h"
+#include "api-server/ApiServer.h"
+#include "discovery/certificate_discovery_service.h"
 
 namespace
 {
@@ -114,8 +116,7 @@ int main(int argc, char **argv)
     if (config.storage_backend == "postgres")
     {
         postgres_client = std::make_shared<infrastructure::PostgresClient>(config.postgres_connection_string);
-        // postgres_client->ensure_schema("sql/postgres_schema.sql");
-        // seed_postgres_eab_mappings(postgres_client, config.eab_mappings_file);
+        postgres_client->ensure_schema("sql/postgres_schema.sql");
         eab_repository = std::make_unique<infrastructure::PostgresEabMappingRepository>(postgres_client);
         account_repository = std::make_unique<infrastructure::PostgresAcmeAccountRepository>(postgres_client);
         order_repository = std::make_unique<infrastructure::PostgresAcmeOrderRepository>(postgres_client);
@@ -164,6 +165,7 @@ int main(int argc, char **argv)
         nonce_service,
         account_service,
         workflow_service);
+    discovery::CertificateDiscoveryService discovery_service;
 
     api_server::ApiServer api_server(
         {
@@ -171,7 +173,8 @@ int main(int argc, char **argv)
             .port = config.port,
             .base_url = config.base_url,
         },
-        server);
+        server,
+        discovery_service);
     api_server.run();
     // server.run();
     return 0;

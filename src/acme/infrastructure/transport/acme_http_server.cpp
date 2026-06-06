@@ -306,10 +306,10 @@ namespace acme::infrastructure::transport
         application::NonceService &nonce_service,
         const application::AcmeAccountService &account_service,
         const application::AcmeWorkflowService &workflow_service)
-        : options_(std::move(options)),
-          nonce_service_(nonce_service),
+        : nonce_service_(nonce_service),
           account_service_(account_service),
-          workflow_service_(workflow_service) {}
+          workflow_service_(workflow_service),
+          options_(std::move(options)) {}
 
     // void AcmeHttpServer::run() const
     // {

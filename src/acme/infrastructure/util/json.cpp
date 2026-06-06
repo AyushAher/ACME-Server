@@ -55,6 +55,17 @@ namespace acme::infrastructure::util::json
         return std::nullopt;
     }
 
+    std::optional<int> find_int(const std::string &json, const std::string &key)
+    {
+        const std::regex pattern("\"" + key + "\"\\s*:\\s*(-?[0-9]+)");
+        std::smatch match;
+        if (std::regex_search(json, match, pattern))
+        {
+            return std::stoi(match[1].str());
+        }
+        return std::nullopt;
+    }
+
     std::optional<bool> find_bool(const std::string &json, const std::string &key)
     {
         const std::regex pattern("\"" + key + "\"\\s*:\\s*(true|false)");

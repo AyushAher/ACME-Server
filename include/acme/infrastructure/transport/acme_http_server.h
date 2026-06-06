@@ -5,6 +5,7 @@
 #include "acme/application/acme_account_service.h"
 #include "acme/application/acme_workflow_service.h"
 #include "acme/application/nonce_service.h"
+#include "common/server_options.h"
 
 namespace acme::infrastructure::transport
 {
@@ -13,7 +14,7 @@ namespace acme::infrastructure::transport
   {
   public:
     AcmeHttpServer(
-        ServerOptions options,
+        common::ServerOptions options,
         application::NonceService &nonce_service,
         const application::AcmeAccountService &account_service,
         const application::AcmeWorkflowService &workflow_service);
@@ -25,7 +26,7 @@ namespace acme::infrastructure::transport
     application::NonceService &nonce_service_;
     const application::AcmeAccountService &account_service_;
     const application::AcmeWorkflowService &workflow_service_;
-    ServerOptions options;
+    common::ServerOptions options_;
   };
 
 } // namespace acme::infrastructure::transport

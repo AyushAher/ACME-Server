@@ -23,7 +23,28 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # OpenSSL
 find_package(OpenSSL REQUIRED)
-find_package(PostgreSQL REQUIRED)
+
+set(LIBPQ_PREFIX "/opt/homebrew/opt/libpq")
+find_path(LIBPQ_INCLUDE_DIR
+    NAMES libpq-fe.h
+    HINTS
+        ${LIBPQ_PREFIX}/include
+        /opt/homebrew/include
+        /usr/local/include
+)
+find_library(LIBPQ_LIBRARY
+    NAMES pq libpq
+    HINTS
+        ${LIBPQ_PREFIX}/lib
+        /opt/homebrew/lib
+        /usr/local/lib
+)
+
+if(NOT LIBPQ_INCLUDE_DIR OR NOT LIBPQ_LIBRARY)
+    find_package(PostgreSQL REQUIRED)
+    set(LIBPQ_INCLUDE_DIR ${PostgreSQL_INCLUDE_DIRS})
+    set(LIBPQ_LIBRARY PostgreSQL::PostgreSQL)
+endif()
 
 # PostgreSQL libpq
 # find_path(LIBPQ_INCLUDE_DIR
@@ -33,7 +54,6 @@ find_package(PostgreSQL REQUIRED)
 #         "C:/Program Files/PostgreSQL/17/include"
 #         "C:/Program Files/PostgreSQL/16/include"
 # )
-
 # find_library(LIBPQ_LIBRARY
 #     NAMES libpq
 #     PATHS
@@ -42,16 +62,16 @@ find_package(PostgreSQL REQUIRED)
 #         "C:/Program Files/PostgreSQL/16/lib"
 # )
 
-# if(NOT LIBPQ_INCLUDE_DIR)
-#     message(FATAL_ERROR "PostgreSQL headers (libpq-fe.h) not found")
-# endif()
+if(NOT LIBPQ_INCLUDE_DIR)
+    message(FATAL_ERROR "PostgreSQL headers (libpq-fe.h) not found")
+endif()
 
-# if(NOT LIBPQ_LIBRARY)
-#     message(FATAL_ERROR "PostgreSQL library (libpq.lib) not found")
-# endif()
+if(NOT LIBPQ_LIBRARY)
+    message(FATAL_ERROR "PostgreSQL library (libpq.lib) not found")
+endif()
 
-# message(STATUS "PostgreSQL Include: ${LIBPQ_INCLUDE_DIR}")
-# message(STATUS "PostgreSQL Library: ${LIBPQ_LIBRARY}")
+message(STATUS "PostgreSQL Include: ${LIBPQ_INCLUDE_DIR}")
+message(STATUS "PostgreSQL Library: ${LIBPQ_LIBRARY}")
 
 # ==================================================
 # Core Library
@@ -66,6 +86,7 @@ add_library(acme_core
     src/acme/application/eab_service.cpp
     src/acme/application/nonce_service.cpp
     src/api-server/ApiServer.cpp
+    src/discovery/certificate_discovery_service.cpp
 
     # ---------- infrastructure ----------
     src/acme/infrastructure/config/app_config.cpp
@@ -109,8 +130,6 @@ target_include_directories(acme_core
     PUBLIC
         ${CMAKE_SOURCE_DIR}/include
         ${LIBPQ_INCLUDE_DIR}
-        ${PostgreSQL_INCLUDE_DIRS}
-
 )
 
 # ==================================================
@@ -138,8 +157,6 @@ target_link_libraries(acme_core
         OpenSSL::SSL
         OpenSSL::Crypto
         ${LIBPQ_LIBRARY}
-        PostgreSQL::PostgreSQL
-
 )
 
 # ==================================================
@@ -176,7 +193,7 @@ enable_testing()
 
 add_test(
     NAME acme_tests
-    COMMAND test_acme_server
+    COMMAND $<TARGET_FILE:test_acme_server>
 )
 
 # ==================================================
@@ -186,3 +203,4 @@ add_test(
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 message(STATUS "Compiler: ${CMAKE_CXX_COMPILER_ID}")
 message(STATUS "OpenSSL Version: ${OPENSSL_VERSION}")
+message(STATUS "libpq include: ${LIBPQ_INCLUDE_DIR}")
