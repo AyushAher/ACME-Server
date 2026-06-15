@@ -3,3 +3,6 @@ data/
 CMakeFiles/
 .vs/
 *.vcxproj
+mongo-cxx-driver-*/
+mongo-cxx-driver-*
+acme_server_demo
