@@ -99,6 +99,8 @@ namespace acme::application
         const std::string &authorization_url,
         const domain::EabMapping &mapping) const
     {
+      (void)authorization_url;
+      (void)mapping;
       return std::nullopt;
     }
 

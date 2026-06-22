@@ -1,4 +1,5 @@
 #include "acme/infrastructure/upstream_acme_certificate_authority.h"
+#include "acme/domain/ca_constants.h"
 #include <iostream>
 
 #include <openssl/bio.h>
@@ -319,11 +320,11 @@ namespace acme::infrastructure
                         .type = "http-01",
                         .status = status.value_or("pending"),
                         .token = *token,
+                        .error_detail = error_detail,
                         .key_authorization = account_thumbprint.empty()
                                                  ? ""
                                                  : *token + "." + account_thumbprint,
                         .upstream_url = *url,
-                        .error_detail = error_detail,
                     });
                 }
             }
@@ -521,8 +522,7 @@ namespace acme::infrastructure
         try
         {
             const auto credential = credential_for(mapping);
-            return credential.ca_name.rfind("LetsEncrypt", 0) == 0 ||
-                   credential.directory_url.find("letsencrypt.org") != std::string::npos;
+            return domain::credential_supports_http01_proxy(credential);
         }
         catch (...)
         {

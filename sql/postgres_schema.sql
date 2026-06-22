@@ -24,12 +24,15 @@ create table if not exists ca_credentials (
 insert into ca_credentials (id, ca_name, ca_type, directory_url, eab_kid, eab_hmac_key)
 values
     ('letsencrypt-production', 'LetsEncrypt-Production', 'acme', 'https://acme-v02.api.letsencrypt.org/directory', '', ''),
-    ('letsencrypt-staging', 'LetsEncrypt-Staging', 'acme', 'https://acme-staging-v02.api.letsencrypt.org/directory', '', '')
+    ('letsencrypt-staging', 'LetsEncrypt-Staging', 'acme', 'https://acme-staging-v02.api.letsencrypt.org/directory', '', ''),
+    ('zerossl-production', 'ZeroSSL-Production', 'acme', 'https://acme.zerossl.com/v2/DV90/directory', '7DkWrmYWnl-4krVYtTKlXg', 'Z9MRp9m3DAFjGat9Ob5fEmpYyu3vcj5IKoXH59EfA_klaGN4qAczq26BQumLducPtklwyY8lrePFa15aV8Dipg')
 on conflict (id) do nothing;
+-- CA names/URLs must match include/acme/domain/ca_constants.h
 
 insert into eab_mappings (id, client_id, hmac_key, ca, credentials_id)
 values
-    ('eab-letsencrypt-staging-demo', 'client-letsencrypt-staging-demo', 'replace-with-base64url-hmac-key', 'LetsEncrypt-Staging', 'letsencrypt-staging')
+    ('eab-letsencrypt-staging-demo', 'client-letsencrypt-staging-demo', 'replace-with-base64url-hmac-key', 'LetsEncrypt-Staging', 'letsencrypt-staging'),
+    ('eab-zerossl-demo', 'client-zerossl', 'replace-with-base64url-hmac-key', 'ZeroSSL-Production', 'zerossl-production')
 on conflict (client_id) do nothing;
 
 create table if not exists acme_accounts (

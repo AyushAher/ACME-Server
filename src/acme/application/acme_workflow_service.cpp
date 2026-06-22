@@ -404,11 +404,11 @@ namespace acme::application
                           << " expected_key_authorization=" << challenge.key_authorization
                           << "\n";
 
-                const bool le_http01_proxy =
+                const bool http01_proxy =
                     mapping.has_value() &&
                     certificate_authority_.supports_http01_challenge_proxy(*mapping);
 
-                if (le_http01_proxy)
+                if (http01_proxy)
                 {
                     std::cout << "[acme] http-01 proxy token=" << challenge.token
                               << " url=" << base_url_ << "/acme/http01/" << challenge.token

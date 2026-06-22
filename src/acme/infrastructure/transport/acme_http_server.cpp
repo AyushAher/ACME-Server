@@ -14,6 +14,7 @@
     #include "acme/infrastructure/util/acme_protocol.h"
     #include "acme/infrastructure/util/base64url.h"
     #include "acme/infrastructure/util/json.h"
+    #include "acme/domain/ca_constants.h"
     #include "common/server_options.h"
 
     namespace acme::infrastructure::transport
@@ -444,7 +445,8 @@
                         {"meta",
                          "{\"externalAccountRequired\":true,\"http01ProxyPath\":\"" +
                              escape(options_.base_url + "/acme/http01/") +
-                             "\",\"http01ProxyFor\":\"LetsEncrypt\"}"}});
+                             "\",\"http01ProxyFor\":\"" +
+                             escape(domain::acme_directory_meta::HTTP01_PROXY_FOR) + "\"}"}});
                     return response(200, body, {{"Content-Type", "acme/application/json"}});
                 }
 
