@@ -50,6 +50,7 @@ namespace acme::domain
         std::string validated_at;
         std::string error_detail;
         std::string key_authorization;
+        std::string upstream_url;
     };
 
     struct AcmeAuthorization
@@ -62,6 +63,7 @@ namespace acme::domain
         std::string identifier_value;
         std::string expires_at;
         std::vector<AcmeChallenge> challenges;
+        std::string upstream_url;
     };
 
     struct AcmeOrder
@@ -76,6 +78,9 @@ namespace acme::domain
         std::string csr_pem;
         std::vector<std::string> authorization_ids;
         std::vector<Identifier> identifiers;
+        std::string upstream_url;
+        std::string upstream_finalize_url;
+        std::string upstream_certificate_url;
     };
 
     struct AcmeCertificate
@@ -114,6 +119,32 @@ namespace acme::domain
         std::string certificate_pem_or_der;
         std::string raw_response;
         std::string error;
+    };
+
+    struct CaCredential
+    {
+        std::string id;
+        std::string ca_name;
+        std::string ca_type;
+        std::string directory_url;
+        std::string eab_kid;
+        std::string eab_hmac_key;
+        std::string account_key_pem;
+        std::string account_url;
+        bool terms_of_service_agreed{true};
+        bool insecure_skip_tls_verify{false};
+    };
+
+    struct AcmeRelayOrderResult
+    {
+        bool success{false};
+        std::string status{"pending"};
+        std::string upstream_order_url;
+        std::string upstream_finalize_url;
+        std::string upstream_certificate_url;
+        std::string raw_response;
+        std::string error;
+        std::vector<AcmeAuthorization> authorizations;
     };
 
 } // namespace acme::domain

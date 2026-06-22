@@ -6,3 +6,6 @@ CMakeFiles/
 mongo-cxx-driver-*/
 mongo-cxx-driver-*
 acme_server_demo
+.codex/
+*.tar.gz
+*.zip

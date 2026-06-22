@@ -24,6 +24,7 @@ namespace acme::infrastructure::config
         std::string openssl_chain_file{
             "/Users/ayushaher/Documents/Certificates/pki/aerovia/intermediate/certs/ca-chain.crt"};
         int openssl_valid_days{90};
+        std::string http01_challenge_webroot;
         EjbcaClientConfig ejbca;
     };
 

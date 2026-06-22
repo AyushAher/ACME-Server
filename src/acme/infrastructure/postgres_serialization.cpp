@@ -65,7 +65,7 @@ namespace acme::infrastructure
             items.push_back(
                 challenge.challenge_id + "|" + challenge.type + "|" + challenge.url + "|" + challenge.status + "|" +
                 challenge.token + "|" + challenge.validated_at + "|" + challenge.error_detail + "|" +
-                challenge.key_authorization);
+                challenge.key_authorization + "|" + challenge.upstream_url);
         }
         return encode_list(items);
     }
@@ -76,7 +76,7 @@ namespace acme::infrastructure
         for (const auto &item : decode_list(value))
         {
             const auto parts = util::split(item, '|');
-            if (parts.size() == 8)
+            if (parts.size() >= 8)
             {
                 challenges.push_back({
                     .challenge_id = parts[0],
@@ -87,6 +87,7 @@ namespace acme::infrastructure
                     .validated_at = parts[5],
                     .error_detail = parts[6],
                     .key_authorization = parts[7],
+                    .upstream_url = parts.size() >= 9 ? parts[8] : "",
                 });
             }
         }

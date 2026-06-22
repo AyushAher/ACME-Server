@@ -18,7 +18,9 @@
 #include "acme/infrastructure/openssl_certificate_authority.h"
 #include "acme/infrastructure/postgres_client.h"
 #include "acme/infrastructure/postgres_repositories.h"
+#include "acme/infrastructure/routing_certificate_authority.h"
 #include "acme/infrastructure/transport/acme_http_server.h"
+#include "acme/infrastructure/upstream_acme_certificate_authority.h"
 #include "acme/infrastructure/util/file_store.h"
 #include "api-server/ApiServer.h"
 #include "discovery/certificate_discovery_service.h"
@@ -112,17 +114,19 @@ int main(int argc, char **argv)
     std::unique_ptr<application::AcmeAuthorizationRepository> authorization_repository;
     std::unique_ptr<application::AcmeCertificateRepository> certificate_repository;
     std::unique_ptr<application::NonceRepository> nonce_repository;
+    std::shared_ptr<infrastructure::PostgresCaCredentialRepository> ca_credential_repository;
 
     if (config.storage_backend == "postgres")
     {
         postgres_client = std::make_shared<infrastructure::PostgresClient>(config.postgres_connection_string);
-        postgres_client->ensure_schema("sql/postgres_schema.sql");
+        // postgres_client->ensure_schema("sql/postgres_schema.sql");
         eab_repository = std::make_unique<infrastructure::PostgresEabMappingRepository>(postgres_client);
         account_repository = std::make_unique<infrastructure::PostgresAcmeAccountRepository>(postgres_client);
         order_repository = std::make_unique<infrastructure::PostgresAcmeOrderRepository>(postgres_client);
         authorization_repository = std::make_unique<infrastructure::PostgresAcmeAuthorizationRepository>(postgres_client);
         certificate_repository = std::make_unique<infrastructure::PostgresAcmeCertificateRepository>(postgres_client);
         nonce_repository = std::make_unique<infrastructure::PostgresNonceRepository>(postgres_client);
+        ca_credential_repository = std::make_shared<infrastructure::PostgresCaCredentialRepository>(postgres_client);
     }
     else
     {
@@ -142,6 +146,12 @@ int main(int argc, char **argv)
         .working_dir = config.data_dir,
         .valid_days = config.openssl_valid_days,
     });
+    infrastructure::UpstreamAcmeCertificateAuthority upstream_certificate_authority(
+        ca_credential_repository,
+        config.data_dir);
+    infrastructure::RoutingCertificateAuthority routing_certificate_authority(
+        certificate_authority,
+        upstream_certificate_authority);
 
     application::EabService eab_service(*eab_repository);
     application::AcmeAccountService account_service(*account_repository, eab_service);
@@ -152,8 +162,9 @@ int main(int argc, char **argv)
         *order_repository,
         *authorization_repository,
         *certificate_repository,
-        certificate_authority,
+        routing_certificate_authority,
         challenge_validator,
+        config.http01_challenge_webroot,
         config.base_url);
 
     infrastructure::transport::AcmeHttpServer server(

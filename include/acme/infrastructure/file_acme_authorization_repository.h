@@ -15,6 +15,7 @@ namespace acme::infrastructure
     domain::AcmeAuthorization update(const domain::AcmeAuthorization &authorization) override;
     std::optional<domain::AcmeAuthorization> find_by_id(const std::string &authorization_id) const override;
     std::optional<domain::AcmeAuthorization> find_by_challenge_id(const std::string &challenge_id) const override;
+    std::optional<domain::AcmeAuthorization> find_by_challenge_token(const std::string &token) const override;
 
   private:
     std::string data_dir_;

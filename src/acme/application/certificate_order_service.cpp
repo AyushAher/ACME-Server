@@ -26,7 +26,7 @@ namespace acme::application
             return {.error = "no EAB mapping associated with ACME account"};
         }
 
-        if (mapping->ca != certificate_authority_.authority_name())
+        if (certificate_authority_.authority_name() != "*" && mapping->ca != certificate_authority_.authority_name())
         {
             return {.error = "configured certificate authority does not match bound CA"};
         }

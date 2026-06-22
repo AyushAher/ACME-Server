@@ -108,6 +108,10 @@ namespace acme::infrastructure::config
             {
                 config.openssl_valid_days = std::stoi(value);
             }
+            else if (key == "http01_challenge_webroot")
+            {
+                config.http01_challenge_webroot = value;
+            }
             else if (key == "ejbca_base_url")
             {
                 config.ejbca.base_url = value;

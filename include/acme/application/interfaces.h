@@ -52,6 +52,7 @@ namespace acme::application
     virtual domain::AcmeAuthorization update(const domain::AcmeAuthorization &authorization) = 0;
     virtual std::optional<domain::AcmeAuthorization> find_by_id(const std::string &authorization_id) const = 0;
     virtual std::optional<domain::AcmeAuthorization> find_by_challenge_id(const std::string &challenge_id) const = 0;
+    virtual std::optional<domain::AcmeAuthorization> find_by_challenge_token(const std::string &token) const = 0;
   };
 
   class AcmeCertificateRepository
@@ -67,9 +68,55 @@ namespace acme::application
   public:
     virtual ~CertificateAuthority() = default;
     virtual std::string authority_name() const = 0;
+    virtual bool supports_external_authorizations(const domain::EabMapping &mapping) const
+    {
+      (void)mapping;
+      return false;
+    }
+    virtual domain::AcmeRelayOrderResult create_order(
+        const std::string &account_id,
+        const std::vector<domain::Identifier> &identifiers,
+        const domain::EabMapping &mapping) const
+    {
+      (void)account_id;
+      (void)identifiers;
+      (void)mapping;
+      return {.success = false, .error = "certificate authority does not support upstream ACME orders"};
+    }
+    virtual domain::CertificateIssueResult acknowledge_challenge(
+        const std::string &challenge_url,
+        const domain::EabMapping &mapping) const
+    {
+      (void)challenge_url;
+      (void)mapping;
+      return {.error = "certificate authority does not support upstream ACME challenges"};
+    }
     virtual domain::CertificateIssueResult issue_certificate(
         const domain::CertificateOrderRequest &request,
         const domain::EabMapping &mapping) const = 0;
+
+    virtual std::optional<domain::AcmeAuthorization> get_authorization(
+        const std::string &authorization_url,
+        const domain::EabMapping &mapping) const
+    {
+      return std::nullopt;
+    }
+
+    virtual bool client_account_matches_upstream(
+        const std::string &client_account_jwk,
+        const domain::EabMapping &mapping) const
+    {
+      (void)client_account_jwk;
+      (void)mapping;
+      return true;
+    }
+
+    virtual bool supports_http01_challenge_proxy(const domain::EabMapping &mapping) const
+    {
+      (void)mapping;
+      return false;
+    }
+
   };
 
   class ChallengeValidator

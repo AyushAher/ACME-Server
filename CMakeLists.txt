@@ -98,10 +98,13 @@ add_library(acme_core
     src/acme/infrastructure/file_acme_order_repository.cpp
     src/acme/infrastructure/file_nonce_repository.cpp
     src/acme/infrastructure/http01_challenge_validator.cpp
+    src/acme/infrastructure/http01_webroot_publisher.cpp
     src/acme/infrastructure/in_memory_acme_account_repository.cpp
     src/acme/infrastructure/in_memory_eab_mapping_repository.cpp
     src/acme/infrastructure/in_memory_nonce_repository.cpp
     src/acme/infrastructure/openssl_certificate_authority.cpp
+    src/acme/infrastructure/routing_certificate_authority.cpp
+    src/acme/infrastructure/upstream_acme_certificate_authority.cpp
 
     # PostgreSQL
     src/acme/infrastructure/postgres_client.cpp

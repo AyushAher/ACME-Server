@@ -1,0 +1,60 @@
+-- The CXX compiler identification is GNU 15.2.0
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Found OpenSSL: /usr/lib/x86_64-linux-gnu/libcrypto.so (found version "3.5.5")
+-- Found PostgreSQL: /usr/lib/x86_64-linux-gnu/libpq.so (found version "18.4")
+-- PostgreSQL Include: /usr/include/postgresql
+-- PostgreSQL Library: PostgreSQL::PostgreSQL
+-- Build type: 
+-- Compiler: GNU
+-- OpenSSL Version: 3.5.5
+-- libpq include: /usr/include/postgresql
+-- Configuring done (31.1s)
+-- Generating done (0.5s)
+-- Build files have been written to: /mnt/d/Workspace/Certilife/ACME/GH/build
+[  2%] Building CXX object CMakeFiles/acme_core.dir/src/acme/application/acme_workflow_service.cpp.o
+[  5%] Building CXX object CMakeFiles/acme_core.dir/src/acme/application/acme_account_service.cpp.o
+[  7%] Building CXX object CMakeFiles/acme_core.dir/src/acme/application/certificate_order_service.cpp.o
+[ 10%] Building CXX object CMakeFiles/acme_core.dir/src/acme/application/eab_service.cpp.o
+[ 12%] Building CXX object CMakeFiles/acme_core.dir/src/acme/application/nonce_service.cpp.o
+[ 15%] Building CXX object CMakeFiles/acme_core.dir/src/api-server/ApiServer.cpp.o
+[ 17%] Building CXX object CMakeFiles/acme_core.dir/src/discovery/certificate_discovery_service.cpp.o
+[ 20%] Building CXX object CMakeFiles/acme_core.dir/src/acme/infrastructure/config/app_config.cpp.o
+[ 22%] Building CXX object CMakeFiles/acme_core.dir/src/acme/infrastructure/ejbca_certificate_authority.cpp.o
+[ 25%] Building CXX object CMakeFiles/acme_core.dir/src/acme/infrastructure/file_acme_authorization_repository.cpp.o
+[ 27%] Building CXX object CMakeFiles/acme_core.dir/src/acme/infrastructure/file_acme_account_repository.cpp.o
+[ 30%] Building CXX object CMakeFiles/acme_core.dir/src/acme/infrastructure/file_acme_certificate_repository.cpp.o
+[ 32%] Building CXX object CMakeFiles/acme_core.dir/src/acme/infrastructure/file_eab_mapping_repository.cpp.o
+[ 35%] Building CXX object CMakeFiles/acme_core.dir/src/acme/infrastructure/file_acme_order_repository.cpp.o
+[ 37%] Building CXX object CMakeFiles/acme_core.dir/src/acme/infrastructure/file_nonce_repository.cpp.o
+[ 40%] Building CXX object CMakeFiles/acme_core.dir/src/acme/infrastructure/http01_challenge_validator.cpp.o
+[ 42%] Building CXX object CMakeFiles/acme_core.dir/src/acme/infrastructure/in_memory_acme_account_repository.cpp.o
+[ 45%] Building CXX object CMakeFiles/acme_core.dir/src/acme/infrastructure/in_memory_eab_mapping_repository.cpp.o
+[ 47%] Building CXX object CMakeFiles/acme_core.dir/src/acme/infrastructure/in_memory_nonce_repository.cpp.o
+[ 50%] Building CXX object CMakeFiles/acme_core.dir/src/acme/infrastructure/openssl_certificate_authority.cpp.o
+[ 52%] Building CXX object CMakeFiles/acme_core.dir/src/acme/infrastructure/routing_certificate_authority.cpp.o
+[ 55%] Building CXX object CMakeFiles/acme_core.dir/src/acme/infrastructure/upstream_acme_certificate_authority.cpp.o
+[ 57%] Building CXX object CMakeFiles/acme_core.dir/src/acme/infrastructure/postgres_client.cpp.o
+[ 60%] Building CXX object CMakeFiles/acme_core.dir/src/acme/infrastructure/postgres_repositories.cpp.o
+[ 62%] Building CXX object CMakeFiles/acme_core.dir/src/acme/infrastructure/postgres_serialization.cpp.o
+[ 65%] Building CXX object CMakeFiles/acme_core.dir/src/acme/infrastructure/shell_http_client.cpp.o
+[ 67%] Building CXX object CMakeFiles/acme_core.dir/src/acme/infrastructure/transport/acme_http_server.cpp.o
+[ 70%] Building CXX object CMakeFiles/acme_core.dir/src/acme/infrastructure/util/acme_protocol.cpp.o
+[ 72%] Building CXX object CMakeFiles/acme_core.dir/src/acme/infrastructure/util/base64url.cpp.o
+[ 75%] Building CXX object CMakeFiles/acme_core.dir/src/acme/infrastructure/util/command_runner.cpp.o
+[ 77%] Building CXX object CMakeFiles/acme_core.dir/src/acme/infrastructure/util/file_store.cpp.o
+[ 80%] Building CXX object CMakeFiles/acme_core.dir/src/acme/infrastructure/util/json.cpp.o
+[ 82%] Building CXX object CMakeFiles/acme_core.dir/src/acme/infrastructure/util/hmac_sha256.cpp.o
+[ 85%] Building CXX object CMakeFiles/acme_core.dir/src/acme/infrastructure/util/random.cpp.o
+[ 87%] Building CXX object CMakeFiles/acme_core.dir/src/acme/infrastructure/util/sha256.cpp.o
+[ 90%] Linking CXX static library libacme_core.a
+[ 90%] Built target acme_core
+[ 92%] Building CXX object CMakeFiles/acme_server_demo.dir/src/main.cpp.o
+[ 95%] Linking CXX executable acme_server_demo
+[ 95%] Built target acme_server_demo
+[ 97%] Building CXX object CMakeFiles/test_acme_server.dir/tests/test_main.cpp.o
+[100%] Linking CXX executable test_acme_server
+[100%] Built target test_acme_server

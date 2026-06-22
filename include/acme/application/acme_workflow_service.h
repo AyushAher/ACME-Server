@@ -16,6 +16,7 @@ namespace acme::application
             AcmeCertificateRepository &certificate_repository,
             const CertificateAuthority &certificate_authority,
             const ChallengeValidator &challenge_validator,
+            std::string http01_challenge_webroot,
             std::string base_url);
 
         domain::AcmeOrder create_order(
@@ -27,6 +28,7 @@ namespace acme::application
         std::optional<domain::AcmeAuthorization> get_authorization(const std::string &authorization_id) const;
         std::optional<domain::AcmeAuthorization> get_authorization_by_challenge(const std::string &challenge_id) const;
         std::optional<domain::AcmeChallenge> get_challenge(const std::string &challenge_id) const;
+        std::optional<std::string> get_http01_challenge_response(const std::string &token) const;
         domain::AcmeChallenge acknowledge_challenge(
             const std::string &challenge_id,
             const std::string &account_id,
@@ -45,6 +47,7 @@ namespace acme::application
         AcmeCertificateRepository &certificate_repository_;
         const CertificateAuthority &certificate_authority_;
         const ChallengeValidator &challenge_validator_;
+        std::string http01_challenge_webroot_;
         std::string base_url_;
 
         static std::string next_id(const std::string &prefix);

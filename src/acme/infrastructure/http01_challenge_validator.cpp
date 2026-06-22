@@ -25,7 +25,11 @@ namespace acme::infrastructure
         }
         if (body != expected_key_authorization)
         {
-            return {.error = "http-01 content mismatch"};
+            return {
+                .error = "http-01 content mismatch for http://" + identifier +
+                         "/.well-known/acme-challenge/" + token +
+                         " expected=\"" + expected_key_authorization + "\" got=\"" + body + "\"",
+            };
         }
 
         return {.success = true};

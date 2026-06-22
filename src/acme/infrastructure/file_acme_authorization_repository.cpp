@@ -152,6 +152,38 @@ namespace acme::infrastructure
         return std::nullopt;
     }
 
+    std::optional<domain::AcmeAuthorization> FileAcmeAuthorizationRepository::find_by_challenge_token(
+        const std::string &token) const
+    {
+        const auto directory = std::filesystem::path(data_dir_ + "/authorizations");
+        if (!std::filesystem::exists(directory))
+        {
+            return std::nullopt;
+        }
+
+        for (const auto &entry : std::filesystem::directory_iterator(directory))
+        {
+            if (!entry.is_regular_file())
+            {
+                continue;
+            }
+            const auto authorization_id = entry.path().stem().string();
+            const auto authorization = find_by_id(authorization_id);
+            if (!authorization.has_value())
+            {
+                continue;
+            }
+            for (const auto &challenge : authorization->challenges)
+            {
+                if (challenge.token == token)
+                {
+                    return authorization;
+                }
+            }
+        }
+        return std::nullopt;
+    }
+
     std::string FileAcmeAuthorizationRepository::path_for(const std::string &authorization_id) const
     {
         return data_dir_ + "/authorizations/" + authorization_id + ".record";

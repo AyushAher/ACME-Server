@@ -18,6 +18,17 @@ namespace acme::infrastructure
     std::shared_ptr<PostgresClient> client_;
   };
 
+  class PostgresCaCredentialRepository final
+  {
+  public:
+    explicit PostgresCaCredentialRepository(std::shared_ptr<PostgresClient> client);
+    std::optional<domain::CaCredential> find_by_id(const std::string &id) const;
+    domain::CaCredential save(const domain::CaCredential &credential) const;
+
+  private:
+    std::shared_ptr<PostgresClient> client_;
+  };
+
   class PostgresNonceRepository final : public application::NonceRepository
   {
   public:
@@ -63,6 +74,7 @@ namespace acme::infrastructure
     domain::AcmeAuthorization update(const domain::AcmeAuthorization &authorization) override;
     std::optional<domain::AcmeAuthorization> find_by_id(const std::string &authorization_id) const override;
     std::optional<domain::AcmeAuthorization> find_by_challenge_id(const std::string &challenge_id) const override;
+    std::optional<domain::AcmeAuthorization> find_by_challenge_token(const std::string &token) const override;
 
   private:
     std::shared_ptr<PostgresClient> client_;
